@@ -1,29 +1,16 @@
-package dagnelies;
+package com.github.dagnelies.filemap;
 
-import java.io.BufferedInputStream;
 import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.RandomAccessFile;
-import java.nio.ByteBuffer;
-import java.nio.channels.SeekableByteChannel;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
-import java.nio.file.OpenOption;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.nio.file.StandardOpenOption;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.UUID;
-import java.util.Map.Entry;
-import java.util.stream.Stream;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -39,7 +26,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  * @param <K>
  * @param <V>
  */
-public class CachedFileMap<K,V>  implements Map<K,V> {
+public class CachedFileMap<K,V>  implements FileMap<K,V> {
 
 	Map<K,V> internal = new HashMap<>();
 	Path path;
@@ -186,29 +173,19 @@ public class CachedFileMap<K,V>  implements Map<K,V> {
 		long obsoleteOps = operationsCount - this.size();
 		return 1.0 * obsoleteOps / this.size();
 	}
-	
-	public static void main(String[] args) throws IOException, InterruptedException {
-		Map<String, String> map = new CachedFileMap<>("this-is-a-test.db", String.class, String.class);
-		//Map<String, String> map = new HashMap<>();
-		System.out.println("Created");
-		System.out.println(map.get("something"));
-		System.out.println("Size: " + map.size());
-		map.put("something", "here");
-		long next = System.currentTimeMillis() + 1000;
-		int size = map.size();
-		while(size < 1000 * 1000 * 100) {
-			if( System.currentTimeMillis() > next ) {
-				next += 1000;
-				int sizeNow = map.size();
-				System.out.println("Entries: " + sizeNow / 1000 + "k");
-				System.out.println("TPS: " + (sizeNow - size) / 1000 + "k/s");
-				size = sizeNow;
-				//System.gc();
-				
-				System.out.println("Free memory (mb): " + (Runtime.getRuntime().freeMemory() / 1000 / 1000));
-			}
-			map.put(UUID.randomUUID().toString(), UUID.randomUUID().toString());
-		}
-		map.put("something", "changed");
+
+
+
+	@Override
+	public long diskSize() throws IOException {
+		return file.length();
 	}
+
+
+
+	@Override
+	public void close() throws IOException {
+		file.close();
+	}
+	
 }

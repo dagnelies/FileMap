@@ -1,21 +1,24 @@
-package dagnelies;
+package com.github.dagnelies.filemap;
 
-import java.io.BufferedOutputStream;
-import java.io.BufferedReader;
-import java.io.FileInputStream;
-import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.io.RandomAccessFile;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.Arrays;
-import java.util.UUID;
 
-import com.fasterxml.jackson.core.util.ByteArrayBuilder;
-
+/**
+ * In core Java, you have the choice between:
+ * 
+ * - RandomAccessFile: random access but slow (unbuffered)
+ * - BufferedInputStream/Reader: fast (buffered) but no random access
+ * 
+ * Sadly, both are incompatible and there is no meaningful way to combine them.
+ * This is the reason of this BufferedRandomAccessFile. To provide random access
+ * along with fast read capabilities thanks to buffering.
+ * 
+ * @author dagnelies
+ *
+ */
 public class BufferedRandomAccessFile extends InputStream {
 
 	static final int DEFAULT_BUFFER_SIZE = 8192;
@@ -33,7 +36,7 @@ public class BufferedRandomAccessFile extends InputStream {
 	int buffer_pos = 0;
 	
 	// the underlying file
-	RandomAccessFile raf;
+	private RandomAccessFile raf;
 	
 	
 	public BufferedRandomAccessFile(String filename, String mode) throws IOException {
@@ -53,6 +56,10 @@ public class BufferedRandomAccessFile extends InputStream {
 		file_pos += data.length;
 		if( length < file_pos )
 			length = file_pos;
+	}
+	
+	public void write(String str) throws IOException {
+		write(str.getBytes(StandardCharsets.UTF_8));
 	}
 	
 	public void write(byte b) throws IOException {
@@ -84,19 +91,19 @@ public class BufferedRandomAccessFile extends InputStream {
 		}
 	}
 	
-	public long pos() throws IOException {
+	public long pos() {
 		if( buffer_pos > 0 )
 			return file_pos - buffer.length + buffer_pos;
 		else
 			return file_pos;
 	}
 	
-	public long length() throws IOException {
+	public long length() {
 		return length;
 	}
 	
 	
-	public boolean isEOF() throws IOException {
+	public boolean isEOF() {
 		return pos() >= length();
 	}
 	
@@ -169,9 +176,9 @@ public class BufferedRandomAccessFile extends InputStream {
 	 * Reads the next line, interpreted as UTF-8, excluding the newline character.
 	 */
 	public String readLine() throws IOException {
-		byte[] bytes = readUntil((byte) '\n');
 		if( isEOF() )
 			return null;
+		byte[] bytes = readUntil((byte) '\n');
 		String line = new String(bytes, StandardCharsets.UTF_8);
 		return line;
 	}
@@ -231,43 +238,6 @@ public class BufferedRandomAccessFile extends InputStream {
 		}
 	}
 	
-	
-	public static void main(String[] args) throws IOException, InterruptedException {
-		BufferedRandomAccessFile bf = new BufferedRandomAccessFile("this-is-a-test.db", "rw");
-		//BufferedReader bf = new BufferedReader(new InputStreamReader(new BufferedRandomAccessFile("this-is-a-test.db", "r")));
-		/*
-		System.out.println(bf.readLine());
-		System.out.println(bf.readLine());
-		System.out.println(bf.readLine());
-		System.out.println(bf.readLine());
-		System.out.println(bf.readLine());
-		System.out.println(bf.readLine());
-		System.out.println(bf.readLine());
-		System.out.println(bf.readLine());
-		*/
-		
-		//Thread.sleep(1000*5);
-		int count = 0;
-		long start = System.currentTimeMillis();
-		long next = start + 1000;
-		/*
-		 * while(!bf.isEOF()) {
-			bf.skipUntil((byte) '\n');
-		 */
-		while(true) {
-			String line = bf.readLine();
-			if( line == null )
-				break;
-			count++;
-			if( System.currentTimeMillis() > next ) {
-				next += 1000;
-				System.out.println("line read: " + (count / 1000) + "k");
-			}
-		}
-		System.out.println("\ncount: " + count / 1000 + "k");
-		System.out.println("ms: " + (System.currentTimeMillis() - start));
-	}
-
 	@Override
 	public int read() throws IOException {
 		file_pos++;
@@ -276,7 +246,8 @@ public class BufferedRandomAccessFile extends InputStream {
 	
 	@Override
 	public int read(byte b[], int off, int len) throws IOException {
+		len = raf.read(b, off, len);
 		file_pos += len;
-		return raf.read(b, off, len);
+		return len;
 	}
 }

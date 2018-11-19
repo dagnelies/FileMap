@@ -1,32 +1,12 @@
-package dagnelies;
+package com.github.dagnelies.filemap;
 
-import java.io.BufferedInputStream;
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.RandomAccessFile;
-import java.nio.ByteBuffer;
-import java.nio.channels.SeekableByteChannel;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.OpenOption;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.StandardOpenOption;
 import java.util.AbstractMap;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.UUID;
-import java.util.Map.Entry;
-import java.util.stream.Stream;
-
-import javax.naming.OperationNotSupportedException;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -44,7 +24,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  * @param <K>
  * @param <V>
  */
-public class SeekFileMap<K,V>  implements Map<K,V> {
+public class IndexedFileMap<K,V>  implements FileMap<K,V> {
 
 	Map<K,Long> offsets = new HashMap<>();
 	
@@ -57,7 +37,7 @@ public class SeekFileMap<K,V>  implements Map<K,V> {
 	
 	static ObjectMapper mapper = new ObjectMapper();
 	
-	public SeekFileMap(String filename, Class<? extends K> keyClass, Class<? extends V> valueClass) throws IOException {
+	public IndexedFileMap(String filename, Class<? extends K> keyClass, Class<? extends V> valueClass) throws IOException {
 		file = new BufferedRandomAccessFile(filename, MODE);
 		this.keyClass = keyClass;
 		this.valueClass = valueClass;
@@ -76,7 +56,7 @@ public class SeekFileMap<K,V>  implements Map<K,V> {
 			byte[] keyBuffer = file.readUntil((byte) '\t');
 			file.skipUntil((byte) '\n');
 			K key = parseKey(keyBuffer);
-			*/			
+			*/
 			offsets.put(key, offset);
 			
 			count++;
@@ -267,32 +247,15 @@ public class SeekFileMap<K,V>  implements Map<K,V> {
 		long obsoleteOps = operationsCount - this.size();
 		return 1.0 * obsoleteOps / this.size();
 	}
-	
-	public static void main(String[] args) throws IOException, InterruptedException {
-		Map<String, String> map = new SeekFileMap<>("this-is-a-test.db", String.class, String.class);
-		//Map<String, String> map = new HashMap<>();
-		System.out.println("Created");
-		System.out.println("Size: " + map.size());
-		System.out.println("lucky number: " + map.get("lucky number"));
-		
-		long next = System.currentTimeMillis() + 1000;
-		int size = map.size();
-		while(size < 1000 * 1000 * 1000) {
-			if( System.currentTimeMillis() > next ) {
-				next += 1000;
-				int sizeNow = map.size();
-				System.out.println("Entries: " + sizeNow / 1000 + "k");
-				System.out.println("TPS: " + (sizeNow - size) / 1000 + "k/s");
-				size = sizeNow;
-				//System.gc();
-				
-				System.out.println("Free memory (mb): " + (Runtime.getRuntime().freeMemory() / 1000 / 1000));
-			}
-			
-			map.put(UUID.randomUUID().toString(), UUID.randomUUID().toString());
-			if(Math.random() < 0.001) {
-				map.put("lucky number", "Entry number " + map.size());
-			}
-		}
+
+	@Override
+	public long diskSize() {
+		return file.length();
 	}
+
+	@Override
+	public void close() throws IOException {
+		file.close();
+	}
+	
 }
