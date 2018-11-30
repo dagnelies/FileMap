@@ -9,7 +9,7 @@ import java.util.UUID;
 public class IndexedFileMapTest<K,V> {
 
 	public static void main(String[] args) throws IOException, InterruptedException {
-		Map<String, String> map = new IndexedFileMap<>("this-is-a-test.jkv", String.class, String.class);
+		Map<String, String> map = new IndexedFileMap<>("this-is-a-test.jkv");
 		//Map<String, String> map = new HashMap<>();
 		System.out.println("Created");
 		System.out.println("Size: " + map.size());
@@ -17,7 +17,7 @@ public class IndexedFileMapTest<K,V> {
 		
 		long next = System.currentTimeMillis() + 1000;
 		int size = map.size();
-		while(size < 1000 * 1000 * 1000) {
+		while(size < 1000 * 1000) {
 			if( System.currentTimeMillis() > next ) {
 				next += 1000;
 				int sizeNow = map.size();

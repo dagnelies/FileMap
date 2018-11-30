@@ -24,86 +24,23 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  * @param <K>
  * @param <V>
  */
-public class IndexedFileMap<K,V>  implements FileMap<K,V> {
+public class IndexedFileMap<K,V>  extends AbstractFileMap<K,V> {
 
-	Map<K,Long> offsets = new HashMap<>();
+	private Map<K,Long> offsets;
 	
-	BufferedRandomAccessFile file;
-	String MODE = "rw";
-	long operationsCount = 0;
-	
-	Class<? extends K> keyClass;
-	Class<? extends V> valueClass;
-	
-	static ObjectMapper mapper = new ObjectMapper();
-	
-	public IndexedFileMap(String filename, Class<? extends K> keyClass, Class<? extends V> valueClass) throws IOException {
-		file = new BufferedRandomAccessFile(filename, MODE);
-		this.keyClass = keyClass;
-		this.valueClass = valueClass;
-		
-		int count = 0;
-		while(!file.isEOF()) {
-			long offset = file.pos();			
-			
-			String line = file.readLine();
-			if( line == null ||  line.isEmpty() || line.startsWith("#") )
-				continue;
-			K key = parseKey(line);
-			
-			/*
-			// not really better
-			byte[] keyBuffer = file.readUntil((byte) '\t');
-			file.skipUntil((byte) '\n');
-			K key = parseKey(keyBuffer);
-			*/
-			offsets.put(key, offset);
-			
-			count++;
-		}
-		
-		System.out.println("Size: " + offsets.size());
-		System.out.println("Lines: " + count);
+	public IndexedFileMap(String path) throws IOException {
+		super(path);
 	}
 	
-	private Entry<K, V> parseLine(String line) throws IOException {
-		int i = line.indexOf('\t');
-		if( i <= 0 ) {
-			throw new IOException("Failed to parse line: " + line);
-		}
-		String keyJson = line.substring(0, i);
-		String valueJson = line.substring(i+1);
-		K key = mapper.readValue(keyJson, keyClass);
-		V value = mapper.readValue(valueJson, valueClass);
-		
-		return new AbstractMap.SimpleEntry<K,V>(key, value);
+	@Override
+	protected void init() {
+		offsets = new HashMap<>();
 	}
 	
-	
-	private K parseKey(byte[] buf) throws IOException {
-		K key = mapper.readValue(buf, keyClass);
-		return key;
-	}
-	
-	private K parseKey(String line) throws IOException {
-		int i = line.indexOf('\t');
-		if( i <= 0 ) {
-			throw new IOException("Failed to parse line: " + line);
-		}
-		String keyJson = line.substring(0, i);
-		K key = mapper.readValue(keyJson, keyClass);
-		return key;
-	}
-	
-	private V parseValue(String line) throws IOException {
-		int i = line.indexOf('\t');
-		if( i <= 0 ) {
-			throw new IOException("Failed to parse line: " + line);
-		}
-		String valueJson = line.substring(i+1);
-		V value = mapper.readValue(valueJson, valueClass);
-		
-		return value;
+	@Override
+	protected void firstLoad(long offset, String line) throws IOException {
+		K key = parseKey(line);
+		offsets.put(key, offset);
 	}
 	
 	@Override
@@ -132,8 +69,7 @@ public class IndexedFileMap<K,V>  implements FileMap<K,V> {
 			return null;
 		long offset = offsets.get(key);
 		try {
-			file.seek(offset);
-			String line = file.readLine();
+			String line = super.readLine(offset);
 			V value = parseValue(line);
 			return value;
 		}
@@ -144,79 +80,22 @@ public class IndexedFileMap<K,V>  implements FileMap<K,V> {
 
 	@Override
 	public synchronized V put(K key, V value) {
-		long offset = save(key, value);
+		long offset = writeLine(key, value);
 		offsets.put(key, offset);
-		return null;
-		
+		return value;
 	}
 
 	@Override
 	public synchronized V remove(Object key) {
-		save((K) key, null);
+		writeLine((K) key, null);
 		offsets.remove(key);
 		return null;
 	}
 	
 	
-	private long save(K key, V value) {
-		try {
-			operationsCount++;
-			
-			String keyJson = mapper.writeValueAsString(key);
-			String valueJson = mapper.writeValueAsString(value);
-			String line = keyJson + "\t" + valueJson + "\n";
-			
-			long offset = file.length;
-			file.seek(offset);
-			file.write( line.getBytes(StandardCharsets.UTF_8) );
-			return offset;
-		} catch (IOException e) {
-			throw new RuntimeException("Failed to save entry for " + key, e);
-		}
-	}
-	
-	/*
-	// not really better
-	private long save(K key, V value) {
-		try {
-			operationsCount++;
-			
-			byte[] keyJson = mapper.writeValueAsBytes(key);
-			byte[] valueJson = mapper.writeValueAsBytes(value);
-			//String line = keyJson + "\t" + valueJson + "\n";
-			byte[] buf = new byte[keyJson.length + 1 + valueJson.length + 1];
-			System.arraycopy(keyJson, 0, buf, 0, keyJson.length);
-			buf[keyJson.length] = (byte) '\t';
-			System.arraycopy(valueJson, 0, buf, keyJson.length+1, valueJson.length);
-			buf[keyJson.length + 1 + valueJson.length] = (byte) '\n';
-			
-			long offset = file.length();
-			file.seek(offset);
-			file.write( buf );
-			return offset;
-		} catch (IOException e) {
-			throw new RuntimeException("Failed to save entry for " + key, e);
-		}
-	}
-	*/
-	
-	@Override
-	public synchronized void putAll(Map<? extends K, ? extends V> m) {
-		for( Entry<? extends K, ? extends V> entry : m.entrySet() ) {
-			long offset = save(entry.getKey(), entry.getValue());
-			offsets.put(entry.getKey(), offset);
-		}
-		
-	}
-
 	@Override
 	public synchronized void clear() {
-		try {
-			file.seek(0);
-			file.truncate(0);
-		} catch (IOException e) {
-			throw new RuntimeException("Failed to clear persistent map", e);
-		}
+		super.clearLines();
 		offsets.clear();
 	}
 
@@ -235,27 +114,7 @@ public class IndexedFileMap<K,V>  implements FileMap<K,V> {
 	public synchronized Set<Entry<K, V>> entrySet() {
 		throw new RuntimeException("This operation is not supported for this kind of map.");
 	}
-	
-	/**
-	 * Returns an estimate of the file's content overhead, of the ratio: obsolete data / used data.
-	 * When entries are frequently updated and removed, the old entries are still stored in the file.
-	 * For example, an overhead of 3 would mean that roughly 3/4 of the file is filled with obsolete content.
-	 *  
-	 * @return
-	 */
-	public synchronized double getFileOverhead() {
-		long obsoleteOps = operationsCount - this.size();
-		return 1.0 * obsoleteOps / this.size();
-	}
 
-	@Override
-	public long diskSize() {
-		return file.length();
-	}
 
-	@Override
-	public void close() throws IOException {
-		file.close();
-	}
 	
 }
