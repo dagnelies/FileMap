@@ -1,6 +1,7 @@
 package com.github.dagnelies.filemap;
 
 
+import java.io.File;
 import java.io.IOException;
 import java.util.Map;
 import java.util.UUID;
@@ -9,7 +10,7 @@ import java.util.UUID;
 public class IndexedFileMapTest<K,V> {
 
 	public static void main(String[] args) throws IOException, InterruptedException {
-		Map<String, String> map = new IndexedFileMap<>("this-is-a-test.jkv");
+		Map<String, String> map = new IndexedFileMap<>(new File("this-is-a-test.jkv"));
 		//Map<String, String> map = new HashMap<>();
 		System.out.println("Created");
 		System.out.println("Size: " + map.size());

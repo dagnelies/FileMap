@@ -1,6 +1,7 @@
 package com.github.dagnelies.filemap;
 
 
+import java.io.File;
 import java.io.IOException;
 import java.util.Map;
 import java.util.UUID;
@@ -10,7 +11,7 @@ public class CachedFileMapTest {
 
 	public static void main(String[] args) throws IOException, InterruptedException {
 		long t = System.currentTimeMillis();
-		Map<String, String> map = new CachedFileMap<>("this-is-a-test.jkv");
+		Map<String, String> map = new CachedFileMap<>(new File("this-is-a-test.jkv"));
 		//Map<String, String> map = new HashMap<>();
 		System.out.println("Created");
 		System.out.println(map.get("something"));

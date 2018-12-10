@@ -1,5 +1,6 @@
 package com.github.dagnelies.filemap;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.AbstractMap;
@@ -22,7 +23,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  */
 public abstract class AbstractFileMap<K,V>  implements FileMap<K,V> {
 
-	private BufferedRandomAccessFile file;
+	protected File file;
+	protected BufferedRandomAccessFile fileio;
+	
 	private static final String MODE = "rw";
 	private long entriesWritten = 0;
 	
@@ -31,17 +34,17 @@ public abstract class AbstractFileMap<K,V>  implements FileMap<K,V> {
 	
 	static ObjectMapper mapper = new ObjectMapper();
 	
-	public AbstractFileMap(String path) throws IOException {
-		file = new BufferedRandomAccessFile(path, MODE);
+	public AbstractFileMap(File file) throws IOException {
+		this.file = file;
+		this.fileio = new BufferedRandomAccessFile(file, MODE);
 		this.keyType = new TypeReference<K>(){};
 		this.valueType = new TypeReference<V>(){};
-		
 		init();
 		
-		while(!file.isEOF()) {
-			long offset = file.pos();			
+		while(!fileio.isEOF()) {
+			long offset = fileio.pos();			
 			
-			String line = file.readLine();
+			String line = fileio.readLine();
 			if( line == null ||  line.isEmpty() || line.startsWith("#") )
 				continue;
 			
@@ -58,6 +61,57 @@ public abstract class AbstractFileMap<K,V>  implements FileMap<K,V> {
 	
 	protected abstract void firstLoad(long offset, String line) throws IOException;
 	
+	public File getFile() {
+		return file;
+	}
+	
+	public class LineEntry implements Entry<K, V> {
+
+		String line;
+		int tabPos;
+		
+		LineEntry(String line) throws IOException {
+			this.line = line;
+			this.tabPos = line.indexOf('\t');
+			if( tabPos <= 0 ) {
+				throw new IOException("Failed to parse line: " + line);
+			}
+		}
+		
+		public String getKeyJson() {
+			String keyJson = line.substring(0, tabPos);
+			return keyJson;
+		}
+		
+		@Override
+		public K getKey() {
+			try {
+				return mapper.readValue(getKeyJson(), keyType);
+			} catch (IOException e) {
+				throw new RuntimeException(e);
+			}
+		}
+
+		@Override
+		public V getValue() {
+			try {
+				return mapper.readValue(getValueJson(), valueType);
+			} catch (IOException e) {
+				throw new RuntimeException(e);
+			}
+		}
+		
+		public String getValueJson() {
+			String valueJson = line.substring(tabPos+1);
+			return valueJson;
+		}
+
+		@Override
+		public V setValue(V value) {
+			throw new RuntimeException("This operation is not supported.");
+		}
+		
+	}
 	
 	protected Entry<K, V> parseLine(String line) throws IOException {
 		int i = line.indexOf('\t');
@@ -94,8 +148,8 @@ public abstract class AbstractFileMap<K,V>  implements FileMap<K,V> {
 	}
 
 	protected String readLine(long offset) throws IOException {
-		file.seek(offset);
-		return file.readLine();
+		fileio.seek(offset);
+		return fileio.readLine();
 	}
 	
 	protected long writeLine(K key, V value) {
@@ -106,9 +160,9 @@ public abstract class AbstractFileMap<K,V>  implements FileMap<K,V> {
 			String valueJson = mapper.writeValueAsString(value);
 			String line = keyJson + "\t" + valueJson + "\n";
 			
-			long offset = file.length;
-			file.seek(offset);
-			file.write( line.getBytes(StandardCharsets.UTF_8) );
+			long offset = fileio.length;
+			fileio.seek(offset);
+			fileio.write( line.getBytes(StandardCharsets.UTF_8) );
 			return offset;
 		} catch (IOException e) {
 			throw new RuntimeException("Failed to save entry for " + key, e);
@@ -124,8 +178,8 @@ public abstract class AbstractFileMap<K,V>  implements FileMap<K,V> {
 	
 	protected synchronized void clearLines() {
 		try {
-			file.seek(0);
-			file.truncate(0);
+			fileio.seek(0);
+			fileio.truncate(0);
 			entriesWritten = 0;
 		} catch (IOException e) {
 			throw new RuntimeException("Failed to clear persistent map", e);
@@ -145,12 +199,12 @@ public abstract class AbstractFileMap<K,V>  implements FileMap<K,V> {
 
 	
 	public long diskSize() {
-		return file.length();
+		return fileio.length();
 	}
 
 	
 	public void close() throws IOException {
-		file.close();
+		fileio.close();
 	}
 	
 }

@@ -1,6 +1,7 @@
 package com.github.dagnelies.filemap;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.charset.StandardCharsets;
@@ -30,8 +31,8 @@ public class CachedFileMap<K,V> extends AbstractFileMap<K,V> {
 
 	private Map<K,V> internal;
 	
-	public CachedFileMap(String path) throws IOException {
-		super(path);
+	public CachedFileMap(File file) throws IOException {
+		super(file);
 	}
 	
 	@Override

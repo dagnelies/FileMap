@@ -1,5 +1,6 @@
 package com.github.dagnelies.filemap;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.RandomAccessFile;
@@ -39,8 +40,8 @@ public class BufferedRandomAccessFile extends InputStream {
 	private RandomAccessFile raf;
 	
 	
-	public BufferedRandomAccessFile(String filename, String mode) throws IOException {
-		raf = new RandomAccessFile(filename, mode);
+	public BufferedRandomAccessFile(File file, String mode) throws IOException {
+		raf = new RandomAccessFile(file, mode);
 		length = raf.length();
 	}
 	

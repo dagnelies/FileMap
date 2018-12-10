@@ -1,10 +1,12 @@
 package com.github.dagnelies.filemap;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.AbstractMap;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 
@@ -24,12 +26,23 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  * @param <K>
  * @param <V>
  */
+/*
+# tagging old entries is mostly useful if table is scanned
+for write intensive workloads, it is less interesting
+metadata can enhance:
+	parsing speed (String length)
+	timestamp (for concurrency)
+	versionning (with pointers to prior)
+
+ ...it is possible to store {"t":timestamp,"p":offset,"v":value} to implement the feature
+at the cost of slightly more bytes per entry
+*/
 public class IndexedFileMap<K,V>  extends AbstractFileMap<K,V> {
 
 	private Map<K,Long> offsets;
 	
-	public IndexedFileMap(String path) throws IOException {
-		super(path);
+	public IndexedFileMap(File file) throws IOException {
+		super(file);
 	}
 	
 	@Override
@@ -115,6 +128,48 @@ public class IndexedFileMap<K,V>  extends AbstractFileMap<K,V> {
 		throw new RuntimeException("This operation is not supported for this kind of map.");
 	}
 
+	public Iterable<LineEntry> entries() {
+		return new Iterable<LineEntry>() {
 
-	
+			@Override
+			public Iterator<LineEntry> iterator() {
+				try {
+					fileio.seek(0);
+				} catch (IOException e1) {
+					throw new RuntimeException(e1);
+				}
+				return new Iterator<LineEntry>() {
+
+					@Override
+					public boolean hasNext() {
+						return !fileio.isEOF();
+					}
+
+					@Override
+					public LineEntry next() {
+						try {
+							while(!fileio.isEOF()) {
+								long offset = fileio.pos();			
+								
+								String line = fileio.readLine();
+								
+								if( line == null ||  line.isEmpty() || line.startsWith("#") )
+									continue;
+								
+								K key = parseKey(line);
+								if(offsets.get(key) != offset)
+									continue; // obsolete entry
+								
+								return new LineEntry(line); // could be slightly improved since key is parsed twice
+							}
+							return null; // EOF
+						} catch (IOException e) {
+							throw new RuntimeException(e);
+						}
+					}
+				};
+			}
+			
+		};
+	}
 }

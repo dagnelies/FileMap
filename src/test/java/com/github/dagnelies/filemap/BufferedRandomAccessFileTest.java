@@ -1,13 +1,14 @@
 package com.github.dagnelies.filemap;
 
 
+import java.io.File;
 import java.io.IOException;
 import java.util.UUID;
 
 public class BufferedRandomAccessFileTest {
 	
 	public static void main(String[] args) throws IOException, InterruptedException {
-		BufferedRandomAccessFile bf = new BufferedRandomAccessFile("this-is-a-test.txt", "rw");
+		BufferedRandomAccessFile bf = new BufferedRandomAccessFile(new File("this-is-a-test.txt"), "rw");
 		
 		// clear the file
 		bf.truncate(0);
