@@ -11,7 +11,12 @@ public class CachedFileMapTest {
 
 	public static void main(String[] args) throws IOException, InterruptedException {
 		long t = System.currentTimeMillis();
-		Map<String, String> map = new CachedFileMap<>(new File("this-is-a-test.jkv"));
+		File file = new File("this-is-a-test.jkv");
+		if( file.exists() )
+			file.delete();
+		
+		Map<String, String> map = new CachedFileMap<>(file, String.class, String.class);
+		
 		//Map<String, String> map = new HashMap<>();
 		System.out.println("Created");
 		System.out.println(map.get("something"));

@@ -31,8 +31,8 @@ public class CachedFileMap<K,V> extends AbstractFileMap<K,V> {
 
 	private Map<K,V> internal;
 	
-	public CachedFileMap(File file) throws IOException {
-		super(file);
+	public CachedFileMap(File file, Class<K> keyType, Class<V> valueType) throws IOException {
+		super(file, keyType, valueType);
 	}
 	
 	@Override
@@ -41,7 +41,7 @@ public class CachedFileMap<K,V> extends AbstractFileMap<K,V> {
 	}
 	
 	@Override
-	protected void firstLoad(long offset, String line) throws IOException {
+	protected void loadEntry(long offset, String line) throws IOException {
 		Entry<K, V> entry = parseLine(line);
 		internal.put(entry.getKey(), entry.getValue());
 	}

@@ -27,19 +27,25 @@ public abstract class AbstractFileMap<K,V>  implements FileMap<K,V> {
 	protected BufferedRandomAccessFile fileio;
 	
 	private static final String MODE = "rw";
-	private long entriesWritten = 0;
+	private long entriesWritten;
 	
-	protected TypeReference<K> keyType;
-	protected TypeReference<V> valueType;
+	Class<K> keyType;
+	Class<V> valueType;
 	
 	static ObjectMapper mapper = new ObjectMapper();
 	
-	public AbstractFileMap(File file) throws IOException {
+	
+	
+	public AbstractFileMap(File file, Class<K> keyType, Class<V> valueType) throws IOException {
 		this.file = file;
-		this.fileio = new BufferedRandomAccessFile(file, MODE);
-		this.keyType = new TypeReference<K>(){};
-		this.valueType = new TypeReference<V>(){};
+		this.keyType = keyType;
+		this.valueType = valueType;
 		init();
+		if(fileio != null)
+			fileio.close();
+		
+		entriesWritten = 0;
+		fileio = new BufferedRandomAccessFile(file, MODE);
 		
 		while(!fileio.isEOF()) {
 			long offset = fileio.pos();			
@@ -48,7 +54,7 @@ public abstract class AbstractFileMap<K,V>  implements FileMap<K,V> {
 			if( line == null ||  line.isEmpty() || line.startsWith("#") )
 				continue;
 			
-			firstLoad(offset, line);
+			loadEntry(offset, line);
 			entriesWritten++;
 		}
 	}
@@ -57,9 +63,9 @@ public abstract class AbstractFileMap<K,V>  implements FileMap<K,V> {
 		return entriesWritten;
 	}
 	
-	protected abstract void init() throws IOException;
-	
-	protected abstract void firstLoad(long offset, String line) throws IOException;
+	abstract protected void init() throws IOException;
+
+	protected abstract void loadEntry(long offset, String line) throws IOException;
 	
 	public File getFile() {
 		return file;

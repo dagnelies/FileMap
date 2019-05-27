@@ -33,6 +33,7 @@ public class ExpiringMap<K,V> implements Map<K,V>, Runnable {
 		this.cleanupDelay = cleanupDelay;
 		
 		Thread cleanupThread = new Thread(this);
+		cleanupThread.setDaemon(true); // to avoid keeping application alive
 		cleanupThread.start();
 	}
 	

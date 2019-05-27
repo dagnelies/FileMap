@@ -41,17 +41,17 @@ public class IndexedFileMap<K,V>  extends AbstractFileMap<K,V> {
 
 	private Map<K,Long> offsets;
 	
-	public IndexedFileMap(File file) throws IOException {
-		super(file);
+	public IndexedFileMap(File file, Class<K> keyType, Class<V> valueType) throws IOException {
+		super(file, keyType, valueType);
 	}
 	
 	@Override
-	protected void init() {
+	protected void init() throws IOException {
 		offsets = new HashMap<>();
 	}
 	
 	@Override
-	protected void firstLoad(long offset, String line) throws IOException {
+	protected void loadEntry(long offset, String line) throws IOException {
 		K key = parseKey(line);
 		offsets.put(key, offset);
 	}
