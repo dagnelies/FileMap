@@ -10,7 +10,13 @@
 	<name>FileMap</name>
 	<url>https://github.com/dagnelies/FileMap</url>
 	<description>FileMap provides Java Maps, backed by a file on disk. It is super simple, offers high performance, is crash safe and stores its data in a readable JSON related format.</description>
-	
+
+	<parent>
+		<groupId>org.apache</groupId>
+		<artifactId>apache</artifactId>
+		<version>10</version>
+	</parent>
+
 	<build>
 		<plugins>
 			<plugin>
