@@ -13,7 +13,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
- * This abstract class is a utility to easely manipulate lines in a random access file and converting
+ * This abstract class is a utility to easily manipulate lines in a random access file and converting
  * text lines into key/value format and vice-versa.
  * 
  * @author dagnelies
