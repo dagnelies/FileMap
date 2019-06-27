@@ -5,21 +5,29 @@ import java.io.File;
 import java.io.IOException;
 import java.util.UUID;
 
+import org.junit.jupiter.api.Test;
+
 public class BufferedRandomAccessFileTest {
-	
-	public static void main(String[] args) throws IOException, InterruptedException {
-		BufferedRandomAccessFile bf = new BufferedRandomAccessFile(new File("this-is-a-test.txt"), "rw");
+
+	@Test
+	public void test() throws IOException, InterruptedException {
+		BufferedRandomAccessFile bf = new BufferedRandomAccessFile(new File("temp/this-is-a-test.txt"), "rw");
 		
 		// clear the file
 		bf.truncate(0);
 		
-		int N = 1000*1;
+		int N = 1000*100;
 		long t = System.currentTimeMillis();
 		int count;
-		
+		long pos_1234 = 0;
 		// write N lines
 		for (int i = 0; i < N; i++) {
-			bf.write(UUID.randomUUID() + "\n");
+			String uuid = UUID.randomUUID().toString();
+			if(i == 1234) {
+				pos_1234 = bf.pos();
+				System.out.println("Writing line 1234 at pos " + pos_1234 + ": " + uuid);
+			}
+			bf.write(uuid + "\n");
 		}
 		
 		System.out.println("Inserted " + N + " lines in " + (System.currentTimeMillis() - t) + " ms");
@@ -47,7 +55,9 @@ public class BufferedRandomAccessFileTest {
 		assert N == count;
 		System.out.println("Read " + count + " lines in " + (System.currentTimeMillis() - t) + " ms");
 		
-		
+		bf.seek(pos_1234);
+		System.out.println("Reading line 1234 at pos " + pos_1234 + ": " + bf.readLine());
+		bf.close();
 	}
 
 }

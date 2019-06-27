@@ -4,12 +4,8 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.AbstractMap;
-import java.util.Collection;
-import java.util.HashMap;
 import java.util.Map;
-import java.util.Set;
 
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
@@ -166,7 +162,7 @@ public abstract class AbstractFileMap<K,V>  implements FileMap<K,V> {
 			String valueJson = mapper.writeValueAsString(value);
 			String line = keyJson + "\t" + valueJson + "\n";
 			
-			long offset = fileio.length;
+			long offset = fileio.length();
 			fileio.seek(offset);
 			fileio.write( line.getBytes(StandardCharsets.UTF_8) );
 			return offset;

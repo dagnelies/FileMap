@@ -1,19 +1,11 @@
 package com.github.dagnelies.filemap;
 
-import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
-import java.io.RandomAccessFile;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
-
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
  * This thread safe hash map is stored both in memory and on disk.

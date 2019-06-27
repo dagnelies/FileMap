@@ -2,15 +2,11 @@ package com.github.dagnelies.filemap;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.util.AbstractMap;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
-
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
  * This thread safe hash map stores its key/values on disk.

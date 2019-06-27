@@ -25,16 +25,16 @@ public class BufferedRandomAccessFile extends InputStream {
 	static final int DEFAULT_BUFFER_SIZE = 8192;
 	
 	// keep track of this separately since RandomAccessFile.getFilePointer() is an expensive operation
-	long file_pos = 0; 
+	private long file_pos = 0; 
 	
 	// keep track of this separately since RandomAccessFile.length() is an expensive operation
-	long length = 0; 
+	private long length = 0; 
 	
 	// the buffer used when reading
-	byte[] buffer;
+	private byte[] buffer;
 	
 	// the position inside the buffer
-	int buffer_pos = 0;
+	private int buffer_pos = 0;
 	
 	// the underlying file
 	private RandomAccessFile raf;
@@ -210,7 +210,7 @@ public class BufferedRandomAccessFile extends InputStream {
 		// read last chunk
 		int len = read(buffer, buffer_pos, DEFAULT_BUFFER_SIZE);
 		
-		// if necessary, trim the end
+		// if necessary (when EOF), trim the empty buffer at the end
 		if(len < DEFAULT_BUFFER_SIZE) {
 			buffer = Arrays.copyOf(buffer, buffer.length - DEFAULT_BUFFER_SIZE + len);
 		}
