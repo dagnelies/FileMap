@@ -43,7 +43,7 @@ public class BufferedRandomAccessFileTest {
 		}
 		assert N == count;
 		System.out.println("Skip " + count + " lines in " + (System.currentTimeMillis() - t) + " ms");
-		
+		//System.out.println(bf.buffer.length);
 		
 		// read N lines
 		bf.seek(0);
@@ -54,6 +54,7 @@ public class BufferedRandomAccessFileTest {
 		}
 		assert N == count;
 		System.out.println("Read " + count + " lines in " + (System.currentTimeMillis() - t) + " ms");
+		//System.out.println(bf.buffer.length);
 		
 		bf.seek(pos_1234);
 		System.out.println("Reading line 1234 at pos " + pos_1234 + ": " + bf.readLine());

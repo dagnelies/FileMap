@@ -116,7 +116,7 @@ public class BufferedRandomAccessFile extends InputStream {
 			fillBuffer(); // fill it
 		}
 		else if( buffer.length > DEFAULT_BUFFER_SIZE ) {
-			// reduce its size if unnecessary big (due to a previous large read)
+			// trim "left side" of buffer if unnecessary big due to a previous large read
 			buffer = Arrays.copyOfRange(buffer, buffer_pos, buffer.length); // removes everything before buffer_pos
 			buffer_pos = 0;
 		}
@@ -184,12 +184,7 @@ public class BufferedRandomAccessFile extends InputStream {
 		return line;
 	}
 	
-	// due to huge reads, the buffer might be quite big
-	// this trims the part of the buffer before buffer_pos
-	private void reduceBuffer() {
-		buffer = Arrays.copyOfRange(buffer, buffer_pos, buffer.length);
-		buffer_pos = 0;
-	}
+	
 	
 	/**
 	 * Reads the next chunk of file and append it to the buffer.
