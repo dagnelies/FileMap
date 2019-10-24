@@ -63,6 +63,7 @@
 					</execution>
 				</executions>
 			</plugin>
+			<!-- https://central.sonatype.org/pages/working-with-pgp-signatures.html -->
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-gpg-plugin</artifactId>
