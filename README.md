@@ -14,8 +14,6 @@ Two kind of maps are available:
 Usage
 -----
 
-TODO: publish on maven
-
 	Map<String, String> myMap;
 	myMap = new CachedFileMap("mydir/somefile.db", String.class, String.class); // or IndexedFileMap
 	// ...
