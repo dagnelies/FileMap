@@ -11,6 +11,23 @@
 	<url>https://github.com/dagnelies/FileMap</url>
 	<description>FileMap provides Java Maps, backed by a file on disk. It is super simple, offers high performance, is crash safe and stores its data in a readable JSON related format.</description>
 
+	<!-- required for publishing in maven repo -->
+	<scm>
+		<url>https://github.com/dagnelies/FileMap</url>
+	</scm>
+	<licenses>
+		<license>
+			<name>MIT</name>
+			<url>https://opensource.org/licenses/MIT</url>
+		</license>
+	</licenses>
+	<developers>
+		<developer>
+			<id>dagnelies</id>
+			<name>Arnaud Dagnelies</name>
+		</developer>
+	</developers>
+	
 	<!-- https://issues.sonatype.org/browse/OSSRH-49209 -->
 	<distributionManagement>
 		<snapshotRepository>
@@ -23,6 +40,7 @@
 		</repository>
 	</distributionManagement>
 
+	<!-- required for publishing in maven repo -->
 	<!-- https://central.sonatype.org/pages/apache-maven.html -->
 	<build>
 		<plugins>
