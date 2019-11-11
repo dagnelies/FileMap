@@ -3,6 +3,8 @@ package com.github.dagnelies.filemap;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
 
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -25,21 +27,22 @@ public class IndexedFileMapTest {
 	public static void main(String[] args) throws IOException, InterruptedException {
 		// create blank DB, even if it already exists
 		File file = new File("this-is-a-test.jkv");
-		//if( file.exists() )
-		//	file.delete();
+		if( file.exists() )
+			file.delete();
 		
 		AbstractFileMap<String, MyGuid> map = new IndexedFileMap<String, MyGuid>(file, String.class, MyGuid.class);
-		
+		//Map<String, MyGuid> map = new HashMap<>();
 		// insert and get single element
 		MyGuid myGuid = new MyGuid();
 		System.out.println(myGuid.guid);
 		map.put("test", new MyGuid());
 		myGuid = map.get("test");
 		System.out.println(myGuid.guid);
-		map.close();
 		
 		// reload it
+		map.close();
 		map = new IndexedFileMap<>(new File("this-is-a-test.jkv"), String.class, MyGuid.class);
+		
 		myGuid = map.get("test");
 		System.out.println(myGuid.guid);
 		

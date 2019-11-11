@@ -5,7 +5,7 @@
 
 	<groupId>com.github.dagnelies</groupId>
 	<artifactId>FileMap</artifactId>
-	<version>0.0.4</version>
+	<version>1.0.0</version>
 
 	<name>FileMap</name>
 	<url>https://github.com/dagnelies/FileMap</url>
@@ -24,11 +24,6 @@
 	</distributionManagement>
 
 	<!-- https://central.sonatype.org/pages/apache-maven.html -->
-	<parent>
-		<groupId>org.apache</groupId>
-		<artifactId>apache</artifactId>
-		<version>21</version>
-	</parent>
 	<build>
 		<plugins>
 			<plugin>
@@ -95,7 +90,7 @@
 		<dependency>
 			<groupId>com.fasterxml.jackson.core</groupId>
 			<artifactId>jackson-databind</artifactId>
-			<version>2.9.10</version>
+			<version>2.10.0</version>
 		</dependency>
 		<dependency>
 			<groupId>org.junit.jupiter</groupId>
