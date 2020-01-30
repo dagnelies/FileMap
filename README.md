@@ -37,6 +37,7 @@ This library also faces a dilemma. Obviously, since the maps are backed by a fil
 How is it persisted?
 --------------------
 Every time an entry is added/updated/removed from the map, a line is added to the file, like:
+
 	"my-key-encoded-as-json"	{"some":"serialized object","as":"json","isOneLiner":true}
 
 A line consists of the key and value formatted as JSON, and separated by a tab character.
